@@ -59,43 +59,12 @@ function getIteratorFn(maybeIterable) {
   return null;
 }
 
-// Do not require this module directly! Use normal `invariant` calls with
-// template literal strings. The messages will be converted to ReactError during
-// build, and in production they will be minified.
-
-// Do not require this module directly! Use normal `invariant` calls with
-// template literal strings. The messages will be converted to ReactError during
-// build, and in production they will be minified.
 
 function ReactError(error) {
   error.name = 'Invariant Violation';
   return error;
 }
 
-/**
- * Use invariant() to assert state which your program assumes to be true.
- *
- * Provide sprintf-style format (only %s is supported) and arguments
- * to provide information about what broke and what you were
- * expecting.
- *
- * The invariant message will be stripped in production, but the invariant
- * will remain to ensure logic does not differ in production.
- */
-
-/**
- * Forked from fbjs/warning:
- * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
- *
- * Only change is we use console.warn instead of console.error,
- * and do nothing when 'console' is not supported.
- * This really simplifies the code.
- * ---
- * Similar to invariant but only logs a warning if the condition is not met.
- * This can be used to log issues in development environments in critical
- * paths. Removing the logging code for production environments will keep the
- * same logic and follow the same code paths.
- */
 
 var lowPriorityWarning = function () {};
 
@@ -205,65 +174,18 @@ function warnNoop(publicInstance, callerName) {
  * This is the abstract API for an update queue.
  */
 var ReactNoopUpdateQueue = {
-  /**
-   * Checks whether or not this composite component is mounted.
-   * @param {ReactClass} publicInstance The instance we want to test.
-   * @return {boolean} True if mounted, false otherwise.
-   * @protected
-   * @final
-   */
   isMounted: function (publicInstance) {
     return false;
   },
 
-  /**
-   * Forces an update. This should only be invoked when it is known with
-   * certainty that we are **not** in a DOM transaction.
-   *
-   * You may want to call this when you know that some deeper aspect of the
-   * component's state has changed but `setState` was not called.
-   *
-   * This will not invoke `shouldComponentUpdate`, but it will invoke
-   * `componentWillUpdate` and `componentDidUpdate`.
-   *
-   * @param {ReactClass} publicInstance The instance that should rerender.
-   * @param {?function} callback Called after component is updated.
-   * @param {?string} callerName name of the calling function in the public API.
-   * @internal
-   */
   enqueueForceUpdate: function (publicInstance, callback, callerName) {
     warnNoop(publicInstance, 'forceUpdate');
   },
 
-  /**
-   * Replaces all of the state. Always use this or `setState` to mutate state.
-   * You should treat `this.state` as immutable.
-   *
-   * There is no guarantee that `this.state` will be immediately updated, so
-   * accessing `this.state` after calling this method may return the old value.
-   *
-   * @param {ReactClass} publicInstance The instance that should rerender.
-   * @param {object} completeState Next state.
-   * @param {?function} callback Called after component is updated.
-   * @param {?string} callerName name of the calling function in the public API.
-   * @internal
-   */
   enqueueReplaceState: function (publicInstance, completeState, callback, callerName) {
     warnNoop(publicInstance, 'replaceState');
   },
 
-  /**
-   * Sets a subset of the state. This only exists because _pendingState is
-   * internal. This provides a merging strategy that is not available to deep
-   * properties which is confusing. TODO: Expose pendingState or don't use it
-   * during the merge.
-   *
-   * @param {ReactClass} publicInstance The instance that should rerender.
-   * @param {object} partialState Next partial state to be merged with state.
-   * @param {?function} callback Called after component is updated.
-   * @param {?string} Name of the calling function in the public API.
-   * @internal
-   */
   enqueueSetState: function (publicInstance, partialState, callback, callerName) {
     warnNoop(publicInstance, 'setState');
   }
@@ -274,46 +196,16 @@ var emptyObject = {};
   Object.freeze(emptyObject);
 }
 
-/**
- * Base class helpers for the updating state of a component.
- */
 function Component(props, context, updater) {
   this.props = props;
   this.context = context;
-  // If a component has string refs, we will assign a different object later.
   this.refs = emptyObject;
-  // We initialize the default updater but the real one gets injected by the
-  // renderer.
+ 
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
 Component.prototype.isReactComponent = {};
 
-/**
- * Sets a subset of the state. Always use this to mutate
- * state. You should treat `this.state` as immutable.
- *
- * There is no guarantee that `this.state` will be immediately updated, so
- * accessing `this.state` after calling this method may return the old value.
- *
- * There is no guarantee that calls to `setState` will run synchronously,
- * as they may eventually be batched together.  You can provide an optional
- * callback that will be executed when the call to setState is actually
- * completed.
- *
- * When a function is provided to setState, it will be called at some point in
- * the future (not synchronously). It will be called with the up to date
- * component arguments (state, props, context). These values can be different
- * from this.* because your function may be called after receiveProps but before
- * shouldComponentUpdate, and this new state, props, and context will not yet be
- * assigned to this.
- *
- * @param {object|function} partialState Next partial state or function to
- *        produce next partial state to be merged with current state.
- * @param {?function} callback Called after state is updated.
- * @final
- * @protected
- */
 Component.prototype.setState = function (partialState, callback) {
   (function () {
     if (!(typeof partialState === 'object' || typeof partialState === 'function' || partialState == null)) {
@@ -325,29 +217,10 @@ Component.prototype.setState = function (partialState, callback) {
   this.updater.enqueueSetState(this, partialState, callback, 'setState');
 };
 
-/**
- * Forces an update. This should only be invoked when it is known with
- * certainty that we are **not** in a DOM transaction.
- *
- * You may want to call this when you know that some deeper aspect of the
- * component's state has changed but `setState` was not called.
- *
- * This will not invoke `shouldComponentUpdate`, but it will invoke
- * `componentWillUpdate` and `componentDidUpdate`.
- *
- * @param {?function} callback Called after update is complete.
- * @final
- * @protected
- */
 Component.prototype.forceUpdate = function (callback) {
   this.updater.enqueueForceUpdate(this, callback, 'forceUpdate');
 };
 
-/**
- * Deprecated APIs. These APIs used to exist on classic React classes but since
- * we would like to deprecate them, we're not going to move them over to this
- * modern base class. Instead, we define a getter that warns if it's accessed.
- */
 {
   var deprecatedAPIs = {
     isMounted: ['isMounted', 'Instead, make sure to clean up subscriptions and pending requests in ' + 'componentWillUnmount to prevent memory leaks.'],
@@ -371,24 +244,19 @@ Component.prototype.forceUpdate = function (callback) {
 function ComponentDummy() {}
 ComponentDummy.prototype = Component.prototype;
 
-/**
- * Convenience component with default shallow equality check for sCU.
- */
+
 function PureComponent(props, context, updater) {
   this.props = props;
   this.context = context;
-  // If a component has string refs, we will assign a different object later.
   this.refs = emptyObject;
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
 var pureComponentPrototype = PureComponent.prototype = new ComponentDummy();
 pureComponentPrototype.constructor = PureComponent;
-// Avoid an extra prototype jump for these methods.
 _assign(pureComponentPrototype, Component.prototype);
 pureComponentPrototype.isPureReactComponent = true;
 
-// an immutable object with a single mutable value
 function createRef() {
   var refObject = {
     current: null
@@ -399,36 +267,15 @@ function createRef() {
   return refObject;
 }
 
-/**
- * Keeps track of the current dispatcher.
- */
 var ReactCurrentDispatcher = {
-  /**
-   * @internal
-   * @type {ReactComponent}
-   */
   current: null
 };
 
-/**
- * Keeps track of the current batch's configuration such as how long an update
- * should suspend for if it needs to.
- */
 var ReactCurrentBatchConfig = {
   suspense: null
 };
 
-/**
- * Keeps track of the current owner.
- *
- * The current owner is the component who should own any components that are
- * currently being constructed.
- */
 var ReactCurrentOwner = {
-  /**
-   * @internal
-   * @type {ReactComponent}
-   */
   current: null
 };
 
@@ -440,8 +287,6 @@ var describeComponentFrame = function (name, source, ownerName) {
     var path = source.fileName;
     var fileName = path.replace(BEFORE_SLASH_RE, '');
     {
-      // In DEV, include code for a common special case:
-      // prefer "folder/index.js" instead of just "index.js".
       if (/^index\./.test(fileName)) {
         var match = path.match(BEFORE_SLASH_RE);
         if (match) {
@@ -679,67 +524,30 @@ function defineRefPropWarningGetter(props, displayName) {
   });
 }
 
-/**
- * Factory method to create a new React element. This no longer adheres to
- * the class pattern, so do not use new to call it. Also, no instanceof check
- * will work. Instead test $$typeof field against Symbol.for('react.element') to check
- * if something is a React Element.
- *
- * @param {*} type
- * @param {*} props
- * @param {*} key
- * @param {string|object} ref
- * @param {*} owner
- * @param {*} self A *temporary* helper to detect places where `this` is
- * different from the `owner` when React.createElement is called, so that we
- * can warn. We want to get rid of owner and replace string `ref`s with arrow
- * functions, and as long as `this` and owner are the same, there will be no
- * change in behavior.
- * @param {*} source An annotation object (added by a transpiler or otherwise)
- * indicating filename, line number, and/or other information.
- * @internal
- */
 var ReactElement = function (type, key, ref, self, source, owner, props) {
   var element = {
-    // This tag allows us to uniquely identify this as a React Element
     $$typeof: REACT_ELEMENT_TYPE,
-
-    // Built-in properties that belong on the element
     type: type,
     key: key,
     ref: ref,
     props: props,
-
-    // Record the component responsible for creating this element.
     _owner: owner
   };
 
   {
-    // The validation flag is currently mutative. We put it on
-    // an external backing store so that we can freeze the whole object.
-    // This can be replaced with a WeakMap once they are implemented in
-    // commonly used development environments.
     element._store = {};
-
-    // To make comparing ReactElements easier for testing purposes, we make
-    // the validation flag non-enumerable (where possible, which should
-    // include every environment we run tests in), so the test framework
-    // ignores it.
     Object.defineProperty(element._store, 'validated', {
       configurable: false,
       enumerable: false,
       writable: true,
       value: false
     });
-    // self and source are DEV only properties.
     Object.defineProperty(element, '_self', {
       configurable: false,
       enumerable: false,
       writable: false,
       value: self
     });
-    // Two elements created in two different places should be considered
-    // equal for testing purposes and therefore we hide it from enumeration.
     Object.defineProperty(element, '_source', {
       configurable: false,
       enumerable: false,
@@ -755,20 +563,6 @@ var ReactElement = function (type, key, ref, self, source, owner, props) {
   return element;
 };
 
-/**
- * https://github.com/reactjs/rfcs/pull/107
- * @param {*} type
- * @param {object} props
- * @param {string} key
- */
-
-
-/**
- * https://github.com/reactjs/rfcs/pull/107
- * @param {*} type
- * @param {object} props
- * @param {string} key
- */
 function jsxDEV(type, config, maybeKey, source, self) {
   var propName = void 0;
 
@@ -844,10 +638,8 @@ function createElement(type, config, children) {
     if (hasValidKey(config)) {
       key = '' + config.key;
     }
-
     self = config.__self === undefined ? null : config.__self;
     source = config.__source === undefined ? null : config.__source;
-    // Remaining properties are added to a new props object
     for (propName in config) {
       if (hasOwnProperty.call(config, propName) && !RESERVED_PROPS.hasOwnProperty(propName)) {
         props[propName] = config[propName];
@@ -855,8 +647,7 @@ function createElement(type, config, children) {
     }
   }
 
-  // Children can be more than one argument, and those are transferred onto
-  // the newly allocated props object.
+  
   var childrenLength = arguments.length - 2;
   if (childrenLength === 1) {
     props.children = children;
@@ -908,10 +699,6 @@ function cloneAndReplaceKey(oldElement, newKey) {
   return newElement;
 }
 
-/**
- * Clone and return a new ReactElement using element as the starting point.
- * See https://reactjs.org/docs/react-api.html#cloneelement
- */
 function cloneElement(element, config, children) {
   (function () {
     if (!!(element === null || element === undefined)) {
@@ -1152,22 +939,6 @@ function traverseAllChildrenImpl(children, nameSoFar, callback, traverseContext)
   return subtreeCount;
 }
 
-/**
- * Traverses children that are typically specified as `props.children`, but
- * might also be specified through attributes:
- *
- * - `traverseAllChildren(this.props.children, ...)`
- * - `traverseAllChildren(this.props.leftPanelChildren, ...)`
- *
- * The `traverseContext` is an optional argument that is passed through the
- * entire traversal. It can be used to store accumulations or anything else that
- * the callback might find relevant.
- *
- * @param {?*} children Children tree object.
- * @param {!function} callback To invoke upon traversing each child.
- * @param {?*} traverseContext Context for traversal.
- * @return {!number} The number of children in this subtree.
- */
 function traverseAllChildren(children, callback, traverseContext) {
   if (children == null) {
     return 0;
@@ -1176,13 +947,6 @@ function traverseAllChildren(children, callback, traverseContext) {
   return traverseAllChildrenImpl(children, '', callback, traverseContext);
 }
 
-/**
- * Generate a key string that identifies a component within a set.
- *
- * @param {*} component A component that could contain a manual key.
- * @param {number} index Index that is used if a manual key is not provided.
- * @return {string}
- */
 function getComponentKey(component, index) {
   // Do some typechecking here since we call this blindly. We want to ensure
   // that we don't block potential future ES APIs.
@@ -1201,18 +965,6 @@ function forEachSingleChild(bookKeeping, child, name) {
   func.call(context, child, bookKeeping.count++);
 }
 
-/**
- * Iterates through children that are typically specified as `props.children`.
- *
- * See https://reactjs.org/docs/react-api.html#reactchildrenforeach
- *
- * The provided forEachFunc(child, index) will be called for each
- * leaf child.
- *
- * @param {?*} children Children tree container.
- * @param {function(*, int)} forEachFunc
- * @param {*} forEachContext Context for forEachContext.
- */
 function forEachChildren(children, forEachFunc, forEachContext) {
   if (children == null) {
     return children;
@@ -1255,19 +1007,6 @@ function mapIntoWithKeyPrefixInternal(children, array, prefix, func, context) {
   releaseTraverseContext(traverseContext);
 }
 
-/**
- * Maps children that are typically specified as `props.children`.
- *
- * See https://reactjs.org/docs/react-api.html#reactchildrenmap
- *
- * The provided mapFunction(child, key, index) will be called for each
- * leaf child.
- *
- * @param {?*} children Children tree container.
- * @param {function(*, int)} func The map function.
- * @param {*} context Context for mapFunction.
- * @return {object} Object containing the ordered map of results.
- */
 function mapChildren(children, func, context) {
   if (children == null) {
     return children;
@@ -1277,27 +1016,12 @@ function mapChildren(children, func, context) {
   return result;
 }
 
-/**
- * Count the number of children that are typically specified as
- * `props.children`.
- *
- * See https://reactjs.org/docs/react-api.html#reactchildrencount
- *
- * @param {?*} children Children tree container.
- * @return {number} The number of children.
- */
 function countChildren(children) {
   return traverseAllChildren(children, function () {
     return null;
   }, null);
 }
 
-/**
- * Flatten a children object (typically specified as `props.children`) and
- * return an array with appropriately re-keyed children.
- *
- * See https://reactjs.org/docs/react-api.html#reactchildrentoarray
- */
 function toArray(children) {
   var result = [];
   mapIntoWithKeyPrefixInternal(children, result, null, function (child) {
@@ -1306,20 +1030,6 @@ function toArray(children) {
   return result;
 }
 
-/**
- * Returns the first child in a collection of children and verifies that there
- * is only one child in the collection.
- *
- * See https://reactjs.org/docs/react-api.html#reactchildrenonly
- *
- * The current implementation of this function assumes that a single child gets
- * passed without a wrapper, but the purpose of this helper function is to
- * abstract away the particular structure of children.
- *
- * @param {?object} children Child collection structure.
- * @return {ReactElement} The first and only `ReactElement` contained in the
- * structure.
- */
 function onlyChild(children) {
   (function () {
     if (!isValidElement(children)) {
@@ -1343,17 +1053,9 @@ function createContext(defaultValue, calculateChangedBits) {
   var context = {
     $$typeof: REACT_CONTEXT_TYPE,
     _calculateChangedBits: calculateChangedBits,
-    // As a workaround to support multiple concurrent renderers, we categorize
-    // some renderers as primary and others as secondary. We only expect
-    // there to be two concurrent renderers at most: React Native (primary) and
-    // Fabric (secondary); React DOM (primary) and React ART (secondary).
-    // Secondary renderers store their context values on separate fields.
     _currentValue: defaultValue,
     _currentValue2: defaultValue,
-    // Used to track how many concurrent renderers this context currently
-    // supports within in a single renderer. Such as parallel server rendering.
-    _threadCount: 0,
-    // These are circular
+     _threadCount: 0,
     Provider: null,
     Consumer: null
   };
@@ -1367,10 +1069,7 @@ function createContext(defaultValue, calculateChangedBits) {
   var hasWarnedAboutUsingConsumerProvider = false;
 
   {
-    // A separate object, but proxies back to the original context object for
-    // backwards compatibility. It has a different $$typeof, so we can properly
-    // warn for the incorrect usage of Context as a Consumer.
-    var Consumer = {
+   var Consumer = {
       $$typeof: REACT_CONTEXT_TYPE,
       _context: context,
       _calculateChangedBits: context._calculateChangedBits
@@ -1627,14 +1326,6 @@ function withSuspenseConfig(scope, config) {
     ReactCurrentBatchConfig.suspense = previousConfig;
   }
 }
-
-/**
- * ReactElementValidator provides a wrapper around a element factory
- * which validates the props passed to the element. This is intended to be
- * used only in DEV and could be replaced by a static type checker for languages
- * that support it.
- */
-
 var propTypesMisspellWarningShown = void 0;
 
 {
@@ -1666,12 +1357,6 @@ function getSourceInfoErrorAddendumForProps(elementProps) {
   }
   return '';
 }
-
-/**
- * Warn if there's no key explicitly set on dynamic arrays of children or
- * object keys are not valid. This allows us to keep track of children between
- * updates.
- */
 var ownerHasKeyUseWarning = {};
 
 function getCurrentComponentErrorInfo(parentType) {
@@ -1686,17 +1371,6 @@ function getCurrentComponentErrorInfo(parentType) {
   return info;
 }
 
-/**
- * Warn if the element doesn't have an explicit key assigned to it.
- * This element is in an array. The array could grow and shrink or be
- * reordered. All children that haven't already been validated are required to
- * have a "key" property assigned to it. Error statuses are cached so a warning
- * will only be shown once.
- *
- * @internal
- * @param {ReactElement} element Element that requires a key.
- * @param {*} parentType element's parent's type.
- */
 function validateExplicitKey(element, parentType) {
   if (!element._store || element._store.validated || element.key != null) {
     return;
@@ -1746,15 +1420,12 @@ function validateChildKeys(node, parentType) {
       }
     }
   } else if (isValidElement(node)) {
-    // This element was passed in a valid location.
     if (node._store) {
       node._store.validated = true;
     }
   } else if (node) {
     var iteratorFn = getIteratorFn(node);
     if (typeof iteratorFn === 'function') {
-      // Entry iterators used to provide implicit keys,
-      // but now we print a separate warning for them later.
       if (iteratorFn !== node.entries) {
         var iterator = iteratorFn.call(node);
         var step = void 0;
@@ -1768,12 +1439,6 @@ function validateChildKeys(node, parentType) {
   }
 }
 
-/**
- * Given an element, validate that its props follow the propTypes definition,
- * provided by the type.
- *
- * @param {ReactElement} element
- */
 function validatePropTypes(element) {
   var type = element.type;
   if (type === null || type === undefined || typeof type === 'string') {
@@ -1786,7 +1451,7 @@ function validatePropTypes(element) {
   } else if (typeof type === 'object' && (type.$$typeof === REACT_FORWARD_REF_TYPE ||
   // Note: Memo only checks outer props here.
   // Inner props are checked in the reconciler.
-  type.$$typeof === REACT_MEMO_TYPE)) {
+    type.$$typeof === REACT_MEMO_TYPE)) {
     propTypes = type.propTypes;
   } else {
     return;
@@ -1861,18 +1526,9 @@ function jsxWithValidation(type, props, key, isStaticChildren, source, self) {
   }
 
   var element = jsxDEV(type, props, key, source, self);
-
-  // The result can be nullish if a mock or a custom function is used.
-  // TODO: Drop this when these are no longer allowed as the type argument.
   if (element == null) {
     return element;
   }
-
-  // Skip key warning if the type isn't valid since our key validation logic
-  // doesn't expect a non-string/function type and can throw confusing errors.
-  // We don't want exception behavior to differ between dev and prod.
-  // (Rendering will throw with a helpful message and as soon as the type is
-  // fixed, the key warnings will appear.)
   if (validType) {
     var children = props.children;
     if (children !== undefined) {
@@ -1899,10 +1555,6 @@ function jsxWithValidation(type, props, key, isStaticChildren, source, self) {
   return element;
 }
 
-// These two functions exist to still get child warnings in dev
-// even with the prod transform. This means that jsxDEV is purely
-// opt-in behavior for better messages but that we won't stop
-// giving you warnings if you use production apis.
 function jsxWithValidationStatic(type, props, key) {
   return jsxWithValidation(type, props, key, true);
 }
@@ -1913,9 +1565,6 @@ function jsxWithValidationDynamic(type, props, key) {
 
 function createElementWithValidation(type, props, children) {
   var validType = isValidElementType(type);
-
-  // We warn in this case but don't throw. We expect the element creation to
-  // succeed and there will likely be errors in render.
   if (!validType) {
     var info = '';
     if (type === undefined || typeof type === 'object' && type !== null && Object.keys(type).length === 0) {
@@ -1946,17 +1595,9 @@ function createElementWithValidation(type, props, children) {
 
   var element = createElement.apply(this, arguments);
 
-  // The result can be nullish if a mock or a custom function is used.
-  // TODO: Drop this when these are no longer allowed as the type argument.
-  if (element == null) {
+ if (element == null) {
     return element;
   }
-
-  // Skip key warning if the type isn't valid since our key validation logic
-  // doesn't expect a non-string/function type and can throw confusing errors.
-  // We don't want exception behavior to differ between dev and prod.
-  // (Rendering will throw with a helpful message and as soon as the type is
-  // fixed, the key warnings will appear.)
   if (validType) {
     for (var i = 2; i < arguments.length; i++) {
       validateChildKeys(arguments[i], type);
@@ -2021,9 +1662,6 @@ var hasBadMapPolyfill = void 0;
 }
 
 function createFundamentalComponent(impl) {
-  // We use responder as a Map key later on. When we have a bad
-  // polyfill, then we can't use it as a key as the polyfill tries
-  // to add a property to the object.
   if (true && !hasBadMapPolyfill) {
     Object.freeze(impl);
   }
@@ -2059,95 +1697,23 @@ function createEventResponder(displayName, responderConfig) {
     rootEventTypes: rootEventTypes || null,
     targetEventTypes: targetEventTypes || null
   };
-  // We use responder as a Map key later on. When we have a bad
-  // polyfill, then we can't use it as a key as the polyfill tries
-  // to add a property to the object.
-  if (true && !hasBadMapPolyfill) {
+   if (true && !hasBadMapPolyfill) {
     Object.freeze(eventResponder);
   }
   return eventResponder;
 }
 
-// Helps identify side effects in begin-phase lifecycle hooks and setState reducers:
-
-
-// In some cases, StrictMode should also double-render lifecycles.
-// This can be confusing for tests though,
-// And it can be bad for performance in production.
-// This feature flag can be used to control the behavior:
-
-
-// To preserve the "Pause on caught exceptions" behavior of the debugger, we
-// replay the begin phase of a failed component inside invokeGuardedCallback.
-
-
-// Warn about deprecated, async-unsafe lifecycles; relates to RFC #6:
-
-
-// Gather advanced timing metrics for Profiler subtrees.
-
-
-// Trace which interactions trigger each commit.
-
-
-// Only used in www builds.
- // TODO: true? Here it might just be false.
-
-// Only used in www builds.
-
-
-// Only used in www builds.
-
-
-// Disable javascript: URL strings in href for XSS protection.
-
-
-// React Fire: prevent the value and checked attributes from syncing
-// with their related DOM properties
-
-
-// These APIs will no longer be "unstable" in the upcoming 16.7 release,
-// Control this behavior with a flag to support 16.6 minor releases in the meanwhile.
 
 
 
-
-// See https://github.com/react-native-community/discussions-and-proposals/issues/72 for more information
-// This is a flag so we can fix warnings in RN core before turning it on
-
-
-// Experimental React Flare event system and event components support.
 var enableFlareAPI = false;
 
-// Experimental Host Component support.
 var enableFundamentalAPI = false;
 
-// New API for JSX transforms to target - https://github.com/reactjs/rfcs/pull/107
 var enableJSXTransformAPI = false;
 
-// We will enforce mocking scheduler with scheduler/unstable_mock at some point. (v17?)
-// Till then, we warn about the missing mock, but still fallback to a sync mode compatible version
-
-// Temporary flag to revert the fix in #15650
 
 
-// For tests, we flush suspense fallbacks in an act scope;
-// *except* in some of our own tests, where we test incremental loading states.
-
-
-// Changes priority of some events like mousemove to user-blocking priority,
-// but without making them discrete. The flag exists in case it causes
-// starvation problems.
-
-
-// Add a callback property to suspense to notify which promises are currently
-// in the update queue. This allows reporting and tracing of what is causing
-// the user to see a loading state.
-
-
-// Part of the simplification of React.createElement so we can eventually move
-// from React.createElement to React.jsx
-// https://github.com/reactjs/rfcs/blob/createlement-rfc/text/0000-create-element-changes.md
 
 var React = {
   Children: {
@@ -2205,10 +1771,6 @@ if (enableFundamentalAPI) {
   React.unstable_createFundamental = createFundamentalComponent;
 }
 
-// Note: some APIs are added with feature flags.
-// Make sure that stable builds for open source
-// don't modify the React object to avoid deopts.
-// Also let's not expose their names in stable builds.
 
 if (enableJSXTransformAPI) {
   {
@@ -2225,9 +1787,6 @@ var React$2 = Object.freeze({
 });
 
 var React$3 = ( React$2 && React ) || React$2;
-
-// TODO: decide on the top-level export form.
-// This is hacky but makes it work with both Rollup and Jest.
 var react = React$3.default || React$3;
 
 module.exports = react;

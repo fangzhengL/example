@@ -1,16 +1,4 @@
-/** @license React v16.9.0
- * react-dom.development.js
- *
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 'use strict';
-
-
-
 if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
@@ -21,29 +9,10 @@ var checkPropTypes = require('prop-types/checkPropTypes');
 var Scheduler = require('scheduler');
 var tracing = require('scheduler/tracing');
 
-// Do not require this module directly! Use normal `invariant` calls with
-// template literal strings. The messages will be converted to ReactError during
-// build, and in production they will be minified.
-
-// Do not require this module directly! Use normal `invariant` calls with
-// template literal strings. The messages will be converted to ReactError during
-// build, and in production they will be minified.
-
 function ReactError(error) {
   error.name = 'Invariant Violation';
   return error;
 }
-
-/**
- * Use invariant() to assert state which your program assumes to be true.
- *
- * Provide sprintf-style format (only %s is supported) and arguments
- * to provide information about what broke and what you were
- * expecting.
- *
- * The invariant message will be stripped in production, but the invariant
- * will remain to ensure logic does not differ in production.
- */
 
 (function () {
   if (!React) {
@@ -53,24 +22,12 @@ function ReactError(error) {
   }
 })();
 
-/**
- * Injectable ordering of event plugins.
- */
 var eventPluginOrder = null;
 
-/**
- * Injectable mapping from names to event plugin modules.
- */
 var namesToPlugins = {};
 
-/**
- * Recomputes the plugin list using the injected plugins and plugin ordering.
- *
- * @private
- */
 function recomputePluginOrdering() {
   if (!eventPluginOrder) {
-    // Wait until an `eventPluginOrder` is injected.
     return;
   }
   for (var pluginName in namesToPlugins) {
@@ -107,14 +64,6 @@ function recomputePluginOrdering() {
   }
 }
 
-/**
- * Publishes an event so that it can be dispatched by the supplied plugin.
- *
- * @param {object} dispatchConfig Dispatch configuration for the event.
- * @param {object} PluginModule Plugin publishing the event.
- * @return {boolean} True if the event was successfully published.
- * @private
- */
 function publishEventForPlugin(dispatchConfig, pluginModule, eventName) {
   (function () {
     if (!!eventNameDispatchConfigs.hasOwnProperty(eventName)) {
@@ -141,13 +90,6 @@ function publishEventForPlugin(dispatchConfig, pluginModule, eventName) {
   return false;
 }
 
-/**
- * Publishes a registration name that is used to identify dispatched events.
- *
- * @param {string} registrationName Registration name to add.
- * @param {object} PluginModule Plugin publishing the event.
- * @private
- */
 function publishRegistrationName(registrationName, pluginModule, eventName) {
   (function () {
     if (!!registrationNameModules[registrationName]) {
@@ -10583,6 +10525,7 @@ function recordEffect() {
 }
 
 function recordScheduleUpdate() {
+  // enableUserTimingAPI 默认为true
   if (enableUserTimingAPI) {
     if (isCommitting) {
       hasScheduledUpdateInCurrentCommit = true;
@@ -11233,6 +11176,7 @@ var initialTimeMs = Scheduler_now();
 // within 32 bits.
 // TODO: Consider lifting this into Scheduler.
 var now = initialTimeMs < 10000 ? Scheduler_now : function () {
+  // Scheduler_now 为当前时间
   return Scheduler_now() - initialTimeMs;
 };
 
@@ -11362,7 +11306,7 @@ var ProfileMode = 8;
 // Max 31 bit integer. The max integer size in V8 for 32-bit systems.
 // Math.pow(2, 30) - 1
 // 0b111111111111111111111111111111
-var MAX_SIGNED_31_BIT_INT = 1073741823;
+var MAX_SIGNED_31_BIT_INT = 1073741823;  // 1566625508078
 
 var NoWork = 0;
 var Never = 1;
@@ -11385,13 +11329,12 @@ function expirationTimeToMs(expirationTime) {
 function ceiling(num, precision) {
   return ((num / precision | 0) + 1) * precision;
 }
-
+ // currentTime 5000 250
 function computeExpirationBucket(currentTime, expirationInMs, bucketSizeMs) {
+  // MAX_SIGNED_31_BIT_INT - 2 - 
   return MAGIC_NUMBER_OFFSET - ceiling(MAGIC_NUMBER_OFFSET - currentTime + expirationInMs / UNIT_SIZE, bucketSizeMs / UNIT_SIZE);
 }
 
-// TODO: This corresponds to Scheduler's NormalPriority, not LowPriority. Update
-// the names to reflect.
 var LOW_PRIORITY_EXPIRATION = 5000;
 var LOW_PRIORITY_BATCH_SIZE = 250;
 
@@ -11400,21 +11343,9 @@ function computeAsyncExpiration(currentTime) {
 }
 
 function computeSuspenseExpiration(currentTime, timeoutMs) {
-  // TODO: Should we warn if timeoutMs is lower than the normal pri expiration time?
   return computeExpirationBucket(currentTime, timeoutMs, LOW_PRIORITY_BATCH_SIZE);
 }
 
-// We intentionally set a higher expiration time for interactive updates in
-// dev than in production.
-//
-// If the main thread is being blocked so long that you hit the expiration,
-// it's a problem that could be solved with better scheduling.
-//
-// People will be more likely to notice this and fix it with the long
-// expiration time in development.
-//
-// In production we opt for better UX at the risk of masking scheduling
-// problems, by expiring fast.
 var HIGH_PRIORITY_EXPIRATION = 500;
 var HIGH_PRIORITY_BATCH_SIZE = 100;
 
@@ -11445,20 +11376,6 @@ function inferPriorityFromExpirationTime(currentTime, expirationTime) {
   // Assume anything lower has idle priority
   return IdlePriority;
 }
-
-/**
- * Forked from fbjs/warning:
- * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
- *
- * Only change is we use console.warn instead of console.error,
- * and do nothing when 'console' is not supported.
- * This really simplifies the code.
- * ---
- * Similar to invariant but only logs a warning if the condition is not met.
- * This can be used to log issues in development environments in critical
- * paths. Removing the logging code for production environments will keep the
- * same logic and follow the same code paths.
- */
 
 var lowPriorityWarning = function () {};
 
@@ -12603,7 +12520,7 @@ function appendUpdateToQueue(queue, update) {
 
 function enqueueUpdate(fiber, update) {
   // Update queues are created lazily.
-  var alternate = fiber.alternate;
+  var alternate = fiber.alternate  // alternate 指向work-in-progress;
   var queue1 = void 0;
   var queue2 = void 0;
   if (alternate === null) {
@@ -21277,15 +21194,11 @@ var currentEventTime = NoWork;
 
 function requestCurrentTime() {
   if ((executionContext & (RenderContext | CommitContext)) !== NoContext) {
-    // We're inside React, so it's fine to read the actual time.
     return msToExpirationTime(now());
   }
-  // We're not inside React, so we may be in the middle of a browser event.
   if (currentEventTime !== NoWork) {
-    // Use the same start time for all updates until we enter React again.
     return currentEventTime;
   }
-  // This is the first update since React yielded. Compute a new start time.
   currentEventTime = msToExpirationTime(now());
   return currentEventTime;
 }
@@ -21352,15 +21265,12 @@ function computeExpirationForFiber(currentTime, fiber, suspenseConfig) {
 
   return expirationTime;
 }
-
 var lastUniqueAsyncExpiration = NoWork;
+
 function computeUniqueAsyncExpiration() {
   var currentTime = requestCurrentTime();
   var result = computeAsyncExpiration(currentTime);
   if (result <= lastUniqueAsyncExpiration) {
-    // Since we assume the current time monotonically increases, we only hit
-    // this branch when computeUniqueAsyncExpiration is fired multiple times
-    // within a 200ms window (or whatever the async bucket size is).
     result -= 1;
   }
   lastUniqueAsyncExpiration = result;
@@ -21381,23 +21291,12 @@ function scheduleUpdateOnFiber(fiber, expirationTime) {
 
   checkForInterruption(fiber, expirationTime);
   recordScheduleUpdate();
-
-  // TODO: computeExpirationForFiber also reads the priority. Pass the
-  // priority as an argument to that function and this one.
   var priorityLevel = getCurrentPriorityLevel();
-
   if (expirationTime === Sync) {
     if (
-    // Check if we're inside unbatchedUpdates
     (executionContext & LegacyUnbatchedContext) !== NoContext &&
-    // Check if we're not already rendering
     (executionContext & (RenderContext | CommitContext)) === NoContext) {
-      // Register pending interactions on the root to avoid losing traced interaction data.
       schedulePendingInteractions(root, expirationTime);
-
-      // This is a legacy edge case. The initial mount of a ReactDOM.render-ed
-      // root inside of batchedUpdates should be synchronous, but layout updates
-      // should be deferred until the end of the batch.
       var callback = renderRoot(root, Sync, true);
       while (callback !== null) {
         callback = callback(true);
@@ -21405,11 +21304,6 @@ function scheduleUpdateOnFiber(fiber, expirationTime) {
     } else {
       scheduleCallbackForRoot(root, ImmediatePriority, Sync);
       if (executionContext === NoContext) {
-        // Flush the synchronous work now, wnless we're already working or inside
-        // a batch. This is intentionally inside scheduleUpdateOnFiber instead of
-        // scheduleCallbackForFiber to preserve the ability to schedule a callback
-        // without immediately flushing it. We only do this for user-initiated
-        // updates, to preserve historical behavior of sync mode.
         flushSyncCallbackQueue();
       }
     }
@@ -21418,12 +21312,8 @@ function scheduleUpdateOnFiber(fiber, expirationTime) {
   }
 
   if ((executionContext & DiscreteEventContext) !== NoContext && (
-  // Only updates at user-blocking priority or greater are considered
-  // discrete, even inside a discrete event.
-  priorityLevel === UserBlockingPriority$2 || priorityLevel === ImmediatePriority)) {
-    // This is the result of a discrete event. Track the lowest priority
-    // discrete update per root so we can flush them early, if needed.
-    if (rootsWithPendingDiscreteUpdates === null) {
+    priorityLevel === UserBlockingPriority$2 || priorityLevel === ImmediatePriority)) {
+   if (rootsWithPendingDiscreteUpdates === null) {
       rootsWithPendingDiscreteUpdates = new Map([[root, expirationTime]]);
     } else {
       var lastDiscreteTime = rootsWithPendingDiscreteUpdates.get(root);
@@ -24282,12 +24172,10 @@ function scheduleRootUpdate(current$$1, element, expirationTime, suspenseConfig,
       warningWithoutStack$1(false, 'Render methods should be a pure function of props and state; ' + 'triggering nested component updates from render is not allowed. ' + 'If necessary, trigger nested updates in componentDidUpdate.\n\n' + 'Check the render method of %s.', getComponentName(current.type) || 'Unknown');
     }
   }
-
+  // 创建更新
   var update = createUpdate(expirationTime, suspenseConfig);
-  // Caution: React DevTools currently depends on this property
-  // being called "element".
-  update.payload = { element: element };
 
+  update.payload = { element: element };
   callback = callback === undefined ? null : callback;
   if (callback !== null) {
     !(typeof callback === 'function') ? warningWithoutStack$1(false, 'render(...): Expected the last optional `callback` argument to be a ' + 'function. Instead received: %s.', callback) : void 0;
@@ -24297,9 +24185,9 @@ function scheduleRootUpdate(current$$1, element, expirationTime, suspenseConfig,
   if (revertPassiveEffectsChange) {
     flushPassiveEffects();
   }
+
   enqueueUpdate(current$$1, update);
   scheduleWork(current$$1, expirationTime);
-
   return expirationTime;
 }
 
@@ -24639,14 +24527,6 @@ function ReactBatch(root) {
 }
 ReactBatch.prototype.render = function (children) {
   var _this = this;
-
-  (function () {
-    if (!_this._defer) {
-      {
-        throw ReactError(Error('batch.render: Cannot render a batch that already committed.'));
-      }
-    }
-  })();
   this._hasChildren = true;
   this._children = children;
   var internalRoot = this._root._internalRoot;
@@ -24688,17 +24568,9 @@ ReactBatch.prototype.commit = function () {
 
   var expirationTime = this._expirationTime;
 
-  // Ensure this is the first batch in the list.
   if (firstBatch !== this) {
-    // This batch is not the earliest batch. We need to move it to the front.
-    // Update its expiration time to be the expiration time of the earliest
-    // batch, so that we can flush it without flushing the other batches.
-    if (this._hasChildren) {
-      expirationTime = this._expirationTime = firstBatch._expirationTime;
-      // Rendering this batch again ensures its children will be the final state
-      // when we flush (updates are processed in insertion order: last
-      // update wins).
-      // TODO: This forces a restart. Should we print a warning?
+  if (this._hasChildren) {
+       expirationTime = this._expirationTime = firstBatch._expirationTime;
       this.render(this._children);
     }
 
@@ -24833,7 +24705,6 @@ ReactRoot.prototype.unmount = ReactSyncRoot.prototype.unmount = function (callba
   return work;
 };
 
-// Sync roots cannot create batches. Only concurrent ones.
 ReactRoot.prototype.createBatch = function () {
   var batch = new ReactBatch(this);
   var expirationTime = batch._expirationTime;
@@ -24860,13 +24731,6 @@ ReactRoot.prototype.createBatch = function () {
   return batch;
 };
 
-/**
- * True if the supplied DOM node is a valid node element.
- *
- * @param {?DOMElement} node The candidate DOM node.
- * @return {boolean} True if the DOM is a valid DOM node.
- * @internal
- */
 function isValidContainer(node) {
   return !!(node && (node.nodeType === ELEMENT_NODE || node.nodeType === DOCUMENT_NODE || node.nodeType === DOCUMENT_FRAGMENT_NODE || node.nodeType === COMMENT_NODE && node.nodeValue === ' react-mount-point-unstable '));
 }
@@ -24916,6 +24780,7 @@ function legacyCreateRootFromDOMContainer(container, forceHydrate) {
   }
 
   // Legacy roots are not batched.
+
   return new ReactSyncRoot(container, LegacyRoot, shouldHydrate);
 }
 
@@ -24930,7 +24795,7 @@ function legacyRenderSubtreeIntoContainer(parentComponent, children, container, 
   var root = container._reactRootContainer;
   var fiberRoot = void 0;
   if (!root) {
-    // Initial mount
+    // Initial mount  创建root
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(container, forceHydrate);
     fiberRoot = root._internalRoot;
     if (typeof callback === 'function') {
@@ -25060,21 +24925,18 @@ var ReactDOM = {
         !!renderedByDifferentReact ? warningWithoutStack$1(false, "unmountComponentAtNode(): The node you're attempting to unmount " + 'was rendered by another copy of React.') : void 0;
       }
 
-      // Unmount should not be batched.
       unbatchedUpdates(function () {
         legacyRenderSubtreeIntoContainer(null, null, container, false, function () {
           container._reactRootContainer = null;
         });
       });
-      // If you call unmountComponentAtNode twice in quick succession, you'll
-      // get `true` twice. That's probably fine?
+     
       return true;
     } else {
       {
         var _rootEl = getReactRootElementInContainer(container);
         var hasNonRootReactChild = !!(_rootEl && getInstanceFromNode$1(_rootEl));
 
-        // Check if the container itself is a React root node.
         var isContainerReactRoot = container.nodeType === ELEMENT_NODE && isValidContainer(container.parentNode) && !!container.parentNode._reactRootContainer;
 
         !!hasNonRootReactChild ? warningWithoutStack$1(false, "unmountComponentAtNode(): The node you're attempting to unmount " + 'was rendered by React and is not a top-level container. %s', isContainerReactRoot ? 'You may have accidentally passed in a React root node instead ' + 'of its container.' : 'Instead, have the parent component update its state and ' + 'rerender in order to remove this component.') : void 0;
@@ -25098,7 +24960,6 @@ var ReactDOM = {
 
   unstable_batchedUpdates: batchedUpdates$1,
 
-  // TODO remove this legacy method, unstable_discreteUpdates replaces it
   unstable_interactiveUpdates: function (fn, a, b, c) {
     flushDiscreteUpdates();
     return discreteUpdates$1(fn, a, b, c);
@@ -25114,8 +24975,6 @@ var ReactDOM = {
   unstable_flushControlled: flushControlled,
 
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: {
-    // Keep in sync with ReactDOMUnstableNativeDependencies.js
-    // ReactTestUtils.js, and ReactTestUtilsAct.js. This is an array for better minification.
     Events: [getInstanceFromNode$1, getNodeFromInstance$1, getFiberCurrentPropsFromNode$1, injection.injectEventPluginsByName, eventNameDispatchConfigs, accumulateTwoPhaseDispatches, accumulateDirectDispatches, enqueueStateRestore, restoreStateIfNeeded, dispatchEvent, runEventsInBatch, flushPassiveEffects, IsThisRendererActing]
   }
 };
@@ -25188,8 +25047,6 @@ var ReactDOM$2 = Object.freeze({
 
 var ReactDOM$3 = ( ReactDOM$2 && ReactDOM ) || ReactDOM$2;
 
-// TODO: decide on the top-level export form.
-// This is hacky but makes it work with both Rollup and Jest.
 var reactDom = ReactDOM$3.default || ReactDOM$3;
 
 module.exports = reactDom;
